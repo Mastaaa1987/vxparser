@@ -6,7 +6,7 @@ source.dir = .
 source.include_exts = py, db, json, png, kv
 source.exclude_dirs = data, bilder, bakk
 version = 1.4.8
-requirements = android, hostpython3==3.9.6, python3==3.9.6, werkzeug==2.2.2, kivy, https://github.com/kivymd/KivyMD/archive/master.zip, gestures4kivy, camera4kivy, aiohttp==3.8.5, fastapi==0.95.0, uvicorn==0.13.3, plyer, unidecode, click, kvdroid, pyjnius, typing_extensions, starlette, pydantic, anyio, sniffio, exceptiongroup, notifications_android_tv, python-multipart, six, certifi>=2018.4.16, pillow, sqlite3, requests==2.31.0, urllib3, charset-normalizer==3.0.1, idna==3.4, chardet, pytz, oscpy, aiosqlite, notifications-android-tv, httpx, httpcore, h11
+requirements = android, hostpython3==3.9.6, python3==3.9.6, werkzeug==2.2.2, kivy, https://github.com/kivymd/KivyMD/archive/master.zip, gestures4kivy, camera4kivy, aiohttp==3.8.5, fastapi==0.95.0, uvicorn==0.13.3, plyer, unidecode, click, kvdroid, pyjnius, typing_extensions, starlette, pydantic, anyio, sniffio, exceptiongroup, notifications_android_tv, python-multipart, six, certifi>=2018.4.16, pillow, sqlite3, requests==2.31.0, charset-normalizer==3.0.1, idna==3.4, chardet, pytz, oscpy, aiosqlite, notifications-android-tv, httpx, httpcore, h11
 android.permissions = INTERNET, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, FOREGROUND_SERVICE
 orientation = portrait, landscape
 fullscreen = 0

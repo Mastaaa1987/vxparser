@@ -255,6 +255,9 @@ def getMovies():
 
 
 def genLists():
+    con2 = sqlite3.connect(com.db2)
+    con2.row_factory = lambda c, r: dict([(col[0], r[idx]) for idx, col in enumerate(c.description)])
+    con2.text_factory = lambda x: unicode(x, errors='ignore')
     if os.path.exists(os.path.join(listpath, 'vod.m3u8')):
         os.remove(os.path.join(listpath, 'vod.m3u8'))
     tf = open(os.path.join(listpath, 'vod.m3u8'), "w")
@@ -288,9 +291,14 @@ def genLists():
         j += 1
     tf.close()
     Logger(1, 'series.m3u8 successful created! (%s Items)' % str(j))
+    con2.close()
 
     return True
 
+def vod_m3u8():
+    if getMovies():
+        return genLists()
+    return False
 
 def getHoster(data):
     site = getattr(sites, data['site'])

@@ -10,10 +10,7 @@ listpath = com.lp
 temppath = os.path.join(com.cp, "temp")
 
 unicode = str
-db = com.db3
-connection = sqlite3.connect(db)
-connection.row_factory = lambda c, r: dict([(col[0], r[idx]) for idx, col in enumerate(c.description)])
-connection.text_factory = lambda x: unicode(x, errors='ignore')
+connection = None
 
 now = datetime.now()
 guide_temp = os.path.join(datapath, 'epg.xml')
@@ -22,12 +19,17 @@ guide_dest = os.path.join(listpath, 'epg.xml.gz')
 
 
 def epg_start():
+    global connection
+    connection = sqlite3.connect(com.db3)
+    connection.row_factory = lambda c, r: dict([(col[0], r[idx]) for idx, col in enumerate(c.description)])
+    connection.text_factory = lambda x: unicode(x, errors='ignore')
     cur = connection.cursor()
     cur.execute('DELETE FROM epg')
     connection.commit()
 
 
 def epg_broadcast(cid, item_title, item_date, item_start, item_end, item_description, lang, item_country, item_season, item_episode, item_agerating):
+    global connection
     cur = connection.cursor()
     desc = ''
     if not item_country == '':
@@ -54,6 +56,7 @@ def epg_broadcast(cid, item_title, item_date, item_start, item_end, item_descrip
 
 
 def epg_end():
+    global connection
     connection.commit()
     connection.close()
 

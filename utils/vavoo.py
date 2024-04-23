@@ -145,7 +145,9 @@ def resolve_link(link):
     _headers={"user-agent": "MediaHubMX/2", "accept": "application/json", "content-type": "application/json; charset=utf-8", "content-length": "158", "accept-encoding": "gzip", "Host": "www.kool.to", "mediahubmx-signature":signed}
     _data={"language":"de","region":"AT","url":link.replace("oha.to/oha-tv", "kool.to/kool-tv").replace("huhu.to/huhu-tv", "kool.to/kool-tv"),"clientVersion":"1.1.3"}
     url = "https://www.kool.to/kool-cluster/mediahubmx-resolve.json"
-    return requests.post(url, data=json.dumps(_data), headers=_headers).json()[0]["url"]
+    resp = requests.post(url, data=json.dumps(_data), headers=_headers)
+    if resp.status_code == 200: return resp.json()[0]["url"]
+    return None
 
 
 def getLinks(action, params):
@@ -209,7 +211,7 @@ def sky_m3u8():
     ssl._create_default_https_context = ssl._create_unverified_context
     _headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.100 Safari/537.36', 'Content-Type': 'application/json; charset=utf-8'}
     channel = requests.get('https://www2.vavoo.to/live2/index?output=json', headers=_headers).json()
-    print(channel)
+    #print(channel)
     #req = Request('https://www2.vavoo.to/live2/index?output=json', headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.100 Safari/537.36'})
     #req.add_header('Content-Type', 'application/json; charset=utf-8')
     #response = urlopen(req)
@@ -432,5 +434,7 @@ def sky_m3u8():
 
     Logger(0, 'Done!', 'm3u8', 'process')
     Logger(9, 'done', 'm3u8', 'process')
-
-
+    con0.close()
+    con1.close()
+    con3.close()
+    return True

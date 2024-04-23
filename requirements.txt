@@ -24,7 +24,6 @@ sqlite3
 requests==2.31.0
 camera4kivy
 gestures4kivy
-urllib3
 charset-normalizer==3.0.1
 idna==3.4
 chardet

@@ -177,7 +177,7 @@ def handler(typ, name=None):
                 Log(1, 'terminate ...', 'vods', 'process')
                 proc['xstream_p'].terminate()
                 proc['xstream_p'] = None
-        proc['xstream_p'] = Process(target=xstream.getMovies)
+        proc['xstream_p'] = Process(target=xstream.vod_m3u8)
         proc['xstream_p'].start()
         Log(1, 'Successful started ...', 'vods', 'process')
     if typ == 'epg_stop':
