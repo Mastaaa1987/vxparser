@@ -151,7 +151,7 @@ def get_channellist():
         
         ch_title = ''
         epg_channels = []
-        con = com.con
+        con = com.con3
         cur = con.cursor()
         for row in cur.execute('SELECT * FROM epgs ORDER BY id'):
             if not row["mid"] == None:
@@ -335,7 +335,7 @@ def create_xml_channels():
     #MyADD
     rytec = str(com.get_setting('epg_rytec', 'Vavoo'))
     epg_channels = {}
-    con = com.con
+    con = com.con3
     cur = con.cursor()
     for row in cur.execute('SELECT * FROM epgs ORDER BY id'):
         if not row["mid"] == None and not row["mid"] == '':
@@ -387,7 +387,7 @@ def create_xml_broadcast(enable_rating_mapper, thread_temppath, download_threads
     rytec = str(com.get_setting('epg_rytec', 'Vavoo'))
     epg_channels = {}
     epg_ids = {}
-    con = com.con
+    con = com.con3
     cur = con.cursor()
     for row in cur.execute('SELECT * FROM epgs ORDER BY id'):
         if not row["mid"] == None and not row["mid"] == '':

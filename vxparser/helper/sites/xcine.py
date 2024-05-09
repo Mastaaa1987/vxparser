@@ -13,6 +13,7 @@ from helper.tools import cParser, cUtil
 SITE_IDENTIFIER = 'xcine'
 SITE_NAME = 'xCine'
 SITE_ICON = 'xcinetop.png'
+SITE_DOMAIN = 'xcine.click'
 
 URL_MAIN = 'https://xcine.click/'
 URL_NEW = URL_MAIN + 'kinofilme-online/'
@@ -25,10 +26,10 @@ URL_SEARCH = URL_MAIN + 'index.php?do=search&subaction=search&story=%s'
 
 def load():
     ret = []
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_NEW, "typ": 1, "key": "showEntries", "title": "New"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_KINO, "typ": 1, "key": "showEntries", "title": "Current films in the cinema"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MOVIES, "typ": 1, "key": "showEntries", "title": "Movies"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_SERIES, "typ": 2, "key": "showEntries", "title": "Series"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_NEW, "typ": 1, "key": "showEntries", "title": "New"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_KINO, "typ": 1, "key": "showEntries", "title": "Current films in the cinema"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MOVIES, "typ": 1, "key": "showEntries", "title": "Movies"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_SERIES, "typ": 2, "key": "showEntries", "title": "Series"})
     return ret
 
 
@@ -67,6 +68,7 @@ def showEntries(entryUrl=False, sSearchText=False):
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showEpisodes' if isTvshow else 'showHosters'
         if sThumbnail[0] == '/': sThumbnail = sThumbnail[1:]
         oGuiElement["thumb"] = URL_MAIN + sThumbnail
@@ -95,6 +97,7 @@ def showEpisodes(entryUrl=False):
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showHosters'
         oGuiElement["mediatype"] = 'episode'
         if isDesc: oGuiElement["desc"] = sDesc

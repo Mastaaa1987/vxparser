@@ -4,12 +4,11 @@ from datetime import timedelta
 import utils.common as common
 from utils.common import Logger as Logger
 import utils.xstream as xstream
-import utils.data as data
-import utils.vavoo as vavoo
 import services
 
-con = common.con
+con = common.con0
 cache = common.cp
+
 
 def mainMenu():
     c = []
@@ -89,6 +88,7 @@ def xstreamMenu():
     c.append(("Global Search","search"))
     c.append(("Get New VoD & Series","get_new"))
     c.append(("ReCreate vod+series.m3u8","gen_lists"))
+    c.append(("Refresh VideoOnDemand Lists", "get_vod"))
     c.append(("- Clean Database (Streams)","clean_db"))
     c.append(("<= Main Menu","back"))
     q = [ inquirer.List("item", message="VoD & Series", choices=c, carousel=True) ]
@@ -192,108 +192,117 @@ def vavooSettings():
 
 def menu():
     menu = 'main'
-    while True:
-        if menu == 'msettings':
-            quest = mainSettings()
-            if not quest: Logger(3, 'Error!', 'main', 'settings')
-            elif quest == 'back': menu = 'main'
-        if menu == 'main':
-            time.sleep(0.2)
-            item = mainMenu()
-            if item == 'submenu_vavoo': menu = 'vavoo'
-            if item == 'submenu_xstream': menu = 'xstream'
-            if item == 'settings':
-                menu = 'msettings'
+    try:
+        while True:
+            if menu == 'msettings':
                 quest = mainSettings()
                 if not quest: Logger(3, 'Error!', 'main', 'settings')
                 elif quest == 'back': menu = 'main'
-            if item == 'shutdown':
-                Logger(0, "Quitting Now...")
-                services.handler('kill')
-                con.close()
-                break
-            if item == 'stop_service': services.handler('service_stop')
-            if item == 'restart_service': services.handler('service_restart')
-            if item == 'clean_db':
-                c = []
-                c.append((" ","0"))
-                c.append(("Yes","yes"))
-                c.append(("No", "no"))
-                c.append(("<= Back","back"))
-                q = [ inquirer.List("item", message="Really Clean settings Database?", choices=c, carousel=True) ]
-                quest = inquirer.prompt(q)
-                if quest['item'] == 'yes':
-                    clean = common.clean_tables('settings')
-                    if not clean: Logger(3, 'Error!', 'db', 'clean')
-                    else: Logger(0, 'Successful ...', 'db', 'clean')
-            if item == 'clear_cache':
-                c = []
-                c.append((" ","0"))
-                c.append(("Yes","yes"))
-                c.append(("No", "no"))
-                c.append(("<= Back","back"))
-                q = [ inquirer.List("item", message="Really Clear Cache?", choices=c, carousel=True) ]
-                quest = inquirer.prompt(q)
-                if quest['item'] == 'yes':
+            if menu == 'main':
+                time.sleep(0.2)
+                item = mainMenu()
+                if item == 'submenu_vavoo': menu = 'vavoo'
+                if item == 'submenu_xstream': menu = 'xstream'
+                if item == 'settings':
+                    menu = 'msettings'
+                    quest = mainSettings()
+                    if not quest: Logger(3, 'Error!', 'main', 'settings')
+                    elif quest == 'back': menu = 'main'
+                if item == 'shutdown':
+                    Logger(0, "Quitting Now...")
                     services.handler('kill')
-                    clear = common.clear_cache()
+                    con.close()
                     break
-        if menu == 'vsettings':
-            quest = vavooSettings()
-            if not quest: Logger(3, 'Error!', 'vavoo', 'settings')
-            elif quest == 'back': menu = 'vavoo'
-        if menu == 'vavoo':
-            item = vavooMenu()
-            if item == 'back': menu = 'main'
-            if item == 'get_list': services.handler('m3u8_start')
-            if item == 'get_epg': services.handler('epg_start')
-            if item == 'settings':
-                menu = 'vsettings'
+                if item == 'stop_service': services.handler('service_stop')
+                if item == 'restart_service': services.handler('service_restart')
+                if item == 'clean_db':
+                    c = []
+                    c.append((" ","0"))
+                    c.append(("Yes","yes"))
+                    c.append(("No", "no"))
+                    c.append(("<= Back","back"))
+                    q = [ inquirer.List("item", message="Really Clean settings Database?", choices=c, carousel=True) ]
+                    quest = inquirer.prompt(q)
+                    if quest['item'] == 'yes':
+                        clean = common.clean_tables('settings')
+                        if not clean: Logger(3, 'Error!', 'db', 'clean')
+                        else: Logger(0, 'Successful ...', 'db', 'clean')
+                if item == 'clear_cache':
+                    c = []
+                    c.append((" ","0"))
+                    c.append(("Yes","yes"))
+                    c.append(("No", "no"))
+                    c.append(("<= Back","back"))
+                    q = [ inquirer.List("item", message="Really Clear Cache?", choices=c, carousel=True) ]
+                    quest = inquirer.prompt(q)
+                    if quest['item'] == 'yes':
+                        services.handler('kill')
+                        clear = common.clear_cache()
+                        if not clear: Logger(3, 'Error!', 'data', 'clear')
+                        else: 
+                            Logger(0, 'Successful ...', 'data', 'clear')
+                            services.handler('init')
+            if menu == 'vsettings':
                 quest = vavooSettings()
                 if not quest: Logger(3, 'Error!', 'vavoo', 'settings')
                 elif quest == 'back': menu = 'vavoo'
-            if item == 'clean_db':
-                c = []
-                c.append((" ","0"))
-                c.append(("Yes","yes"))
-                c.append(("No", "no"))
-                c.append(("<= Back","back"))
-                q = [ inquirer.List("item", message="Really clean LiveTV Database?", choices=c, carousel=True) ]
-                quest = inquirer.prompt(q)
-                if quest['item'] == 'yes':
-                    clean = common.clean_tables('live')
-                    if not clean: Logger(3, 'Error!', 'db', 'clean')
-                    else: Logger(0, 'Successful ...', 'db', 'clean')
-        if menu == 'xstream':
-            item = xstreamMenu()
-            if item == 'settings':
-                quest = xstreamSettings()
-                if not quest: Logger(3, 'Error!', 'vod', 'settings')
-                else: Logger(1, 'Successful ...', 'vod', 'settings')
-            if item == 'back': menu = 'main'
-            if item == 'clean_db':
-                c = []
-                c.append((" ","0"))
-                c.append(("Yes","yes"))
-                c.append(("No", "no"))
-                c.append(("<= Back","back"))
-                q = [ inquirer.List("item", message="Really clean Stream Database?", choices=c, carousel=True) ]
-                quest = inquirer.prompt(q)
-                if quest['item'] == 'yes':
-                    clean = common.clean_tables('streams')
-                    if not clean: Logger(3, 'Error!', 'db', 'clean')
-                    else: Logger(0, 'Successful ...', 'db', 'clean')
-            if item == 'get_new':
-                st = int(time.time())
-                movies = xstream.getMovies()
-                if not movies: Logger(3, 'Error!', 'vod', 'get')
-                else: Logger(0, 'Successful ...', 'vod', 'get')
-                Logger(1, 'Completed in %s' % timedelta(seconds=int(time.time())-st), 'vod', 'get')
-            if item == 'gen_lists':
-                lists = xstream.genLists()
-                if not lists: Logger(3, 'Error!', 'vod', 'gen')
-                else: Logger(0, 'Successful ...', 'vod', 'gen')
-            if item == 'search':
-                quest = inquirer.prompt([inquirer.Text("item", message="Search for?")])
-                ser = xstream.search(quest['item'])
-
+            if menu == 'vavoo':
+                item = vavooMenu()
+                if item == 'back': menu = 'main'
+                if item == 'get_list': services.handler('m3u8_start')
+                if item == 'get_epg': services.handler('epg_start')
+                if item == 'settings':
+                    menu = 'vsettings'
+                    quest = vavooSettings()
+                    if not quest: Logger(3, 'Error!', 'vavoo', 'settings')
+                    elif quest == 'back': menu = 'vavoo'
+                if item == 'clean_db':
+                    c = []
+                    c.append((" ","0"))
+                    c.append(("Yes","yes"))
+                    c.append(("No", "no"))
+                    c.append(("<= Back","back"))
+                    q = [ inquirer.List("item", message="Really clean LiveTV Database?", choices=c, carousel=True) ]
+                    quest = inquirer.prompt(q)
+                    if quest['item'] == 'yes':
+                        clean = common.clean_tables('live')
+                        if not clean: Logger(3, 'Error!', 'db', 'clean')
+                        else: Logger(0, 'Successful ...', 'db', 'clean')
+            if menu == 'xstream':
+                item = xstreamMenu()
+                if item == 'settings':
+                    quest = xstreamSettings()
+                    if not quest: Logger(3, 'Error!', 'vod', 'settings')
+                    else: Logger(1, 'Successful ...', 'vod', 'settings')
+                if item == 'back': menu = 'main'
+                if item == 'clean_db':
+                    c = []
+                    c.append((" ","0"))
+                    c.append(("Yes","yes"))
+                    c.append(("No", "no"))
+                    c.append(("<= Back","back"))
+                    q = [ inquirer.List("item", message="Really clean Stream Database?", choices=c, carousel=True) ]
+                    quest = inquirer.prompt(q)
+                    if quest['item'] == 'yes':
+                        clean = common.clean_tables('streams')
+                        if not clean: Logger(3, 'Error!', 'db', 'clean')
+                        else: Logger(0, 'Successful ...', 'db', 'clean')
+                if item == 'get_new':
+                    st = int(time.time())
+                    movies = xstream.getMovies()
+                    if not movies: Logger(3, 'Error!', 'vod', 'get')
+                    else: Logger(0, 'Successful ...', 'vod', 'get')
+                    Logger(1, 'Completed in %s' % timedelta(seconds=int(time.time())-st), 'vod', 'get')
+                if item == 'gen_lists':
+                    lists = xstream.genLists()
+                    if not lists: Logger(3, 'Error!', 'vod', 'gen')
+                    else: Logger(0, 'Successful ...', 'vod', 'gen')
+                if item == 'get_vod':
+                    services.handler('xstream_start')
+                if item == 'search':
+                    quest = inquirer.prompt([inquirer.Text("item", message="Search for?")])
+                    ser = xstream.search(quest['item'])
+    except TypeError:
+        Logger(0, "Quitting Now...")
+        services.handler('kill')
+        con.close()

@@ -14,6 +14,7 @@ from helper.tools import cParser
 SITE_IDENTIFIER = 'filmpalast'
 SITE_NAME = 'FilmPalast'
 SITE_ICON = 'filmpalast.png'
+SITE_DOMAIN = 'filmpalast.to'
 
 URL_MAIN = 'https://filmpalast.to'
 URL_MOVIES = URL_MAIN + '/movies/%s'
@@ -24,10 +25,10 @@ URL_SEARCH = URL_MAIN + '/search/title/%s'
 
 def load():
     ret = []
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MAIN, "typ": 1, "key": "showEntries", "title": "New"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MOVIES % 'new', "typ": 1, "key": "showEntries", "title": "New Movies"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MOVIES % 'top', "typ": 1, "key": "showEntries", "title": "Top Movies"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MOVIES % 'imdb', "typ": 1, "key": "showEntries", "title": "IMDB rating"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MAIN, "typ": 1, "key": "showEntries", "title": "New"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MOVIES % 'new', "typ": 1, "key": "showEntries", "title": "New Movies"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MOVIES % 'top', "typ": 1, "key": "showEntries", "title": "Top Movies"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MOVIES % 'imdb', "typ": 1, "key": "showEntries", "title": "IMDB rating"})
     return ret
 
 
@@ -47,6 +48,7 @@ def showValue(entryUrl=False, value=False):
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showEntries'
         oGuiElement["url"] = sUrl
         folder.append(oGuiElement)
@@ -89,6 +91,7 @@ def showEntries(entryUrl=False, sSearchText=False):
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showSeasons' if isTvshow else 'showHosters'
         oGuiElement["thumb"] = sThumbnail
         oGuiElement["mediatype"] = 'tvshow' if isTvshow else 'movie'
@@ -120,6 +123,7 @@ def showSeasons(entryUrl=False, sThumbnail=False, sName=False):
         if isDesc: oGuiElement["desc"] = sDesc
         oGuiElement["name"] = 'Staffel ' + str(sSeason)
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showEpisodes'
         oGuiElement["url"] = sUrl
         oGuiElement["mediatype"] = 'season'
@@ -150,6 +154,7 @@ def showEpisodes(entryUrl=False, sSeason=False, sThumbnail=False, sShowName=Fals
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showHosters'
         oGuiElement["mediatype"] = 'episode'
         oGuiElement["e"] = sName

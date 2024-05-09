@@ -11,6 +11,7 @@ from helper.tools import cParser
 SITE_IDENTIFIER = 'movieking'
 SITE_NAME = 'MovieKing'
 SITE_ICON = 'movieking.png'
+SITE_DOMAIN = 'movieking.io'
 
 URL_MAIN = 'https://movieking.io/'
 URL_KINO = URL_MAIN + 'cinema'
@@ -20,8 +21,8 @@ URL_SEARCH = URL_MAIN + 'search?q=%s'
 
 def load():
     ret = []
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_KINO, "typ": 1, "key": "showEntries", "title": "Current films in the cinema"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MOVIES, "typ": 1, "key": "showEntries", "title": "Movies"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_KINO, "typ": 1, "key": "showEntries", "title": "Current films in the cinema"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MOVIES, "typ": 1, "key": "showEntries", "title": "Movies"})
     return ret
 
 
@@ -47,6 +48,7 @@ def showEntries(entryUrl=False, sSearchText=False):
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showHosters'
         oGuiElement["thumb"] = sThumbnail
         oGuiElement["url"] = sUrl

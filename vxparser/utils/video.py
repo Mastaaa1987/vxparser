@@ -1,11 +1,13 @@
 import time, re, os, base64
-from datetime import datetime, timedelta
-from xml.dom import minidom
+from datetime import datetime
 
 import utils.common as common
 
 cachepath = common.cp
-con = common.con
+con0 = common.con0
+con1 = common.con1
+con2 = common.con2
+con3 = common.con3
 server_ip = common.get_ip_address()
 port = int(common.get_setting('server_port', 'Main'))
 temp = os.path.join(cachepath, 'xmltv.xml')
@@ -14,7 +16,10 @@ unicode = str
 
 
 def get_m3u8(username, password, out, typ, of):
-    cur = con.cursor()
+    cur0 = con0.cursor()
+    cur1 = con1.cursor()
+    cur2 = con2.cursor()
+    cur3 = con3.cursor()
     tf = open(of, "w")
     tf.write("#EXTM3U")
     if typ == 'm3u_plus':
@@ -22,19 +27,19 @@ def get_m3u8(username, password, out, typ, of):
         epg_rytec = common.get_setting('epg_rytec')
         m3u8_name = common.get_setting('m3u8_name')
         epg_provider = common.get_setting('epg_provider')
-        for d in cur.execute('SELECT * FROM info WHERE media_type="' + str('movie') + '" ORDER BY releaseDate DESC'):
+        for d in cur2.execute('SELECT * FROM info WHERE media_type="' + str('movie') + '" ORDER BY releaseDate DESC'):
             tf.write('\n#EXTINF:-1 tvg-id="" tvg-name="%s" tvg-logo="%s" group-title="movies",%s' % (d['name'], d['poster'], d['name']))
             tf.write('\nhttp://%s:%s/movie/%s/%s/%s.%s' % (str(server_ip), str(port), username, password, str(d['id']), out))
-        if str(common.get_setting('xtream_codec')) == 't': cur.execute('SELECT * FROM channel WHERE url!="" ORDER BY id')
-        else: cur.execute('SELECT * FROM channel WHERE hls!="" ORDER BY id')
-        dat = cur.fetchall()
+        if str(common.get_setting('xtream_codec')) == 't': cur1.execute('SELECT * FROM channel WHERE url!="" ORDER BY id')
+        else: cur1.execute('SELECT * FROM channel WHERE hls!="" ORDER BY id')
+        dat = cur1.fetchall()
         for d in dat:
             tid = ''
             name = ''
             logo = ''
             if not str(d['tid']) == '':
-                cur.execute('SELECT * FROM epgs WHERE id="' + d['tid'] + '"')
-                eat = cur.fetchone()
+                cur3.execute('SELECT * FROM epgs WHERE id="' + d['tid'] + '"')
+                eat = cur3.fetchone()
                 if epg_rytec == '1': tid = eat['rid']
                 elif epg_provider == 'm':
                     if not eat['mn'] == None: tid = eat['mn']
@@ -57,28 +62,28 @@ def get_m3u8(username, password, out, typ, of):
                 if not str(d['logo']) == '': logo = d['logo']
             tf.write('\n#EXTINF:-1 tvg-id="%s" tvg-name="%s" tvg-logo="%s" group-title="livetv",%s' % (tid, name, logo, name))
             tf.write('\nhttp://%s:%s/live/%s/%s/%s.%s' % (str(server_ip), str(port), username, password, str(d['id']), out))
-        cur.execute('SELECT * FROM info WHERE media_type="' + str('tvshow') + '" ORDER BY releaseDate DESC')
-        dat = cur.fetchall()
+        cur2.execute('SELECT * FROM info WHERE media_type="' + str('tvshow') + '" ORDER BY releaseDate DESC')
+        dat = cur2.fetchall()
         for d in dat:
-            cur.execute('SELECT * FROM streams WHERE sid="' + str(d['id']) + '" ORDER BY season, episode')
-            eat = cur.fetchall()
+            cur2.execute('SELECT * FROM streams WHERE sid="' + str(d['id']) + '" ORDER BY season, episode')
+            eat = cur2.fetchall()
             for e in eat:
                 name = d['name'] + ' S' + e['season'] + ' E' + e['episode']
                 tf.write('\n#EXTINF:-1 tvg-id="" tvg-name="%s" tvg-logo="%s" group-title="series",%s' % (name, d['poster'], name))
                 tf.write('\nhttp://%s:%s/series/%s/%s/%s.%s' % (str(server_ip), str(port), username, password, str(e['id']), out))
     else:
         m3u8_name = common.get_setting('m3u8_name')
-        for d in cur.execute('SELECT * FROM info WHERE media_type="' + str('movie') + '" ORDER BY releaseDate DESC'):
+        for d in cur2.execute('SELECT * FROM info WHERE media_type="' + str('movie') + '" ORDER BY releaseDate DESC'):
             tf.write('\n#EXTINF:-1,%s' % d['name'])
             tf.write('\nhttp://%s:%s/movie/%s/%s/%s.%s' % (str(server_ip), str(port), username, password, str(d['id']), out))
-        if str(common.get_setting('xtream_codec')) == 't': cur.execute('SELECT * FROM channel WHERE url!="" ORDER BY id')
-        else: cur.execute('SELECT * FROM channel WHERE hls!="" ORDER BY id')
-        dat = cur.fetchall()
+        if str(common.get_setting('xtream_codec')) == 't': cur1.execute('SELECT * FROM channel WHERE url!="" ORDER BY id')
+        else: cur1.execute('SELECT * FROM channel WHERE hls!="" ORDER BY id')
+        dat = cur1.fetchall()
         for d in dat:
             name = ''
             if not str(d['tid']) == '':
-                cur.execute('SELECT * FROM epgs WHERE id="' + d['tid'] + '"')
-                eat = cur.fetchone()
+                cur3.execute('SELECT * FROM epgs WHERE id="' + d['tid'] + '"')
+                eat = cur3.fetchone()
                 if m3u8_name == '1':
                     if not eat['display'] == None: name = eat['display']
                     else: name = d['display']
@@ -88,11 +93,11 @@ def get_m3u8(username, password, out, typ, of):
                 else: name = d['name']
             tf.write('\n#EXTINF:-1,%s' % name)
             tf.write('\nhttp://%s:%s/live/%s/%s/%s.%s' % (str(server_ip), str(port), username, password, str(d['id']), out))
-        cur.execute('SELECT * FROM info WHERE media_type="' + str('tvshow') + '" ORDER BY releaseDate DESC')
-        dat = cur.fetchall()
+        cur2.execute('SELECT * FROM info WHERE media_type="' + str('tvshow') + '" ORDER BY releaseDate DESC')
+        dat = cur2.fetchall()
         for d in dat:
-            cur.execute('SELECT * FROM streams WHERE sid="' + str(d['id']) + '" ORDER BY season, episode')
-            eat = cur.fetchall()
+            cur2.execute('SELECT * FROM streams WHERE sid="' + str(d['id']) + '" ORDER BY season, episode')
+            eat = cur2.fetchall()
             for e in eat:
                 name = d['name'] + ' S' + e['season'] + ' E' + e['episode']
                 tf.write('\n#EXTINF:-1,%s' % name)
@@ -134,7 +139,10 @@ def get_m3u8_bakk(username, password, out, typ):
 
 
 def get_all_channels():
-    cur = con.cursor()
+    cur0 = con0.cursor()
+    cur1 = con1.cursor()
+    cur2 = con2.cursor()
+    cur3 = con3.cursor()
     epg_logos = common.get_setting('epg_logos')
     epg_rytec = common.get_setting('epg_rytec')
     m3u8_name = common.get_setting('m3u8_name')
@@ -142,7 +150,7 @@ def get_all_channels():
     dub = {}
     num = 0
     num2 = 0
-    for d in cur.execute('SELECT * FROM info WHERE media_type="' + str('movie') + '" ORDER BY releaseDate DESC'):
+    for d in cur2.execute('SELECT * FROM info WHERE media_type="' + str('movie') + '" ORDER BY releaseDate DESC'):
         num += 1
         dub[str(num)] = {
             "num": int(num),
@@ -162,16 +170,16 @@ def get_all_channels():
             "direct_source": "",
             "tv_archive_duration": 0
         }
-    if str(common.get_setting('xtream_codec')) == 't': cur.execute('SELECT * FROM channel WHERE url!="" ORDER BY id')
-    else: cur.execute('SELECT * FROM channel WHERE hls!="" ORDER BY id')
-    dat = cur.fetchall()
+    if str(common.get_setting('xtream_codec')) == 't': cur1.execute('SELECT * FROM channel WHERE url!="" ORDER BY id')
+    else: cur1.execute('SELECT * FROM channel WHERE hls!="" ORDER BY id')
+    dat = cur1.fetchall()
     for d in dat:
         tid = ''
         name = ''
         logo = ''
         if not str(d['tid']) == '':
-            cur.execute('SELECT * FROM epgs WHERE id="' + d['tid'] + '"')
-            eat = cur.fetchone()
+            cur3.execute('SELECT * FROM epgs WHERE id="' + d['tid'] + '"')
+            eat = cur3.fetchone()
             if epg_rytec == '1': tid = eat['rid']
             elif epg_provider == 'm':
                 if not eat['mn'] == None: tid = eat['mn']
@@ -193,8 +201,8 @@ def get_all_channels():
             else: name = d['name']
             if not str(d['logo']) == '': logo = d['logo']
         if not str(d['cid']) == '':
-            cur.execute('SELECT * FROM categories WHERE category_id="' + str(d['cid']) + '"')
-            cat = cur.fetchone()
+            cur0.execute('SELECT * FROM categories WHERE category_id="' + str(d['cid']) + '"')
+            cat = cur0.fetchone()
             cat_name = cat['category_name']
         else: cat_name = ''
         num += 1
@@ -221,19 +229,19 @@ def get_all_channels():
 
 
 def get_vod_categories():
-    cur = con.cursor()
+    cur = con0.cursor()
     cats = []
     for cat in cur.execute('SELECT * FROM categories WHERE media_type="' + str('movie') + '" ORDER BY category_id'):
         cats.append({
-            "category_id": cat['category_id'], 
-            "category_name": cat['category_name'], 
-            "parent_id": 0, 
+            "category_id": cat['category_id'],
+            "category_name": cat['category_name'],
+            "parent_id": 0,
         })
     return cats
 
 
 def get_vod_streams(category_id=None):
-    cur = con.cursor()
+    cur = con2.cursor()
 
     ret = []
     num = 0
@@ -274,7 +282,7 @@ def get_vod_streams(category_id=None):
 
 
 def get_vod_info(vod_id):
-    cur = con.cursor()
+    cur = con2.cursor()
     cur.execute('SELECT * FROM info WHERE id="' + str(vod_id) + '"')
     info = cur.fetchone()
     cur.execute('SELECT * FROM streams WHERE sid="' + str(info['id']) + '"')
@@ -319,19 +327,19 @@ def get_vod_info(vod_id):
 
 
 def get_series_categories():
-    cur = con.cursor()
+    cur = con0.cursor()
     cats = []
     for cat in cur.execute('SELECT * FROM categories WHERE media_type="' + str('tvshow') + '" ORDER BY category_id'):
         cats.append({
-            "category_id": cat['category_id'], 
-            "category_name": cat['category_name'], 
-            "parent_id": 0, 
+            "category_id": cat['category_id'],
+            "category_name": cat['category_name'],
+            "parent_id": 0,
         })
     return cats
 
 
 def get_series(category_id=None):
-    cur = con.cursor()
+    cur = con2.cursor()
 
     ret = []
     num = 0
@@ -382,7 +390,7 @@ def get_series(category_id=None):
 
 
 def get_series_info(series_id):
-    cur = con.cursor()
+    cur = con2.cursor()
     cur.execute('SELECT * FROM info WHERE id="' + str(series_id) + '"')
     info = cur.fetchone()
     eps = {}
@@ -437,19 +445,22 @@ def get_series_info(series_id):
 
 
 def get_live_categories():
-    cur = con.cursor()
+    cur = con0.cursor()
     cats = []
     for cat in cur.execute('SELECT * FROM categories WHERE media_type="' + str('live') + '" ORDER BY category_id'):
         cats.append({
-            "category_id": cat['category_id'], 
-            "category_name": cat['category_name'], 
-            "parent_id": 0, 
+            "category_id": cat['category_id'],
+            "category_name": cat['category_name'],
+            "parent_id": 0,
         })
     return cats
 
 
 def get_live_streams(category_id=None):
-    cur = con.cursor()
+    cur0 = con0.cursor()
+    cur1 = con1.cursor()
+    cur2 = con2.cursor()
+    cur3 = con3.cursor()
     epg_logos = common.get_setting('epg_logos')
     epg_rytec = common.get_setting('epg_rytec')
     m3u8_name = common.get_setting('m3u8_name')
@@ -458,17 +469,17 @@ def get_live_streams(category_id=None):
     ret = []
     num = 0
     if category_id is None:
-        if str(common.get_setting('xtream_codec')) == 't': cur.execute('SELECT * FROM channel WHERE url!="" ORDER BY id')
-        else: cur.execute('SELECT * FROM channel WHERE hls!="" ORDER BY id')
+        if str(common.get_setting('xtream_codec')) == 't': cur1.execute('SELECT * FROM channel WHERE url!="" ORDER BY id')
+        else: cur1.execute('SELECT * FROM channel WHERE hls!="" ORDER BY id')
         #cur.execute('SELECT * FROM channel ORDER BY id')
-        dat = cur.fetchall()
+        dat = cur1.fetchall()
         for d in dat:
             tid = ''
             name = ''
             logo = ''
             if not str(d['tid']) == '':
-                cur.execute('SELECT * FROM epgs WHERE id="' + d['tid'] + '"')
-                eat = cur.fetchone()
+                cur3.execute('SELECT * FROM epgs WHERE id="' + d['tid'] + '"')
+                eat = cur3.fetchone()
                 if epg_rytec == '1': tid = eat['rid']
                 elif epg_provider == 'm':
                     if not eat['mn'] == None: tid = eat['mn']
@@ -506,18 +517,18 @@ def get_live_streams(category_id=None):
             })
         return ret
     else:
-        cur.execute('SELECT * FROM categories WHERE category_id="' + str(category_id) + '"')
-        cat = cur.fetchone()
-        if str(common.get_setting('xtream_codec')) == 't': cur.execute('SELECT * FROM channel WHERE grp="' + str(cat['category_name']) + '" AND url!="" ORDER BY id')
-        else: cur.execute('SELECT * FROM channel WHERE grp="' + str(cat['category_name']) + '" AND hls!="" ORDER BY id')
-        dat = cur.fetchall()
+        cur0.execute('SELECT * FROM categories WHERE category_id="' + str(category_id) + '"')
+        cat = cur0.fetchone()
+        if str(common.get_setting('xtream_codec')) == 't': cur1.execute('SELECT * FROM channel WHERE grp="' + str(cat['category_name']) + '" AND url!="" ORDER BY id')
+        else: cur1.execute('SELECT * FROM channel WHERE grp="' + str(cat['category_name']) + '" AND hls!="" ORDER BY id')
+        dat = cur1.fetchall()
         for d in dat:
             tid = ''
             name = ''
             logo = ''
             if not str(d['tid']) == '':
-                cur.execute('SELECT * FROM epgs WHERE id="' + d['tid'] + '"')
-                eat = cur.fetchone()
+                cur3.execute('SELECT * FROM epgs WHERE id="' + d['tid'] + '"')
+                eat = cur3.fetchone()
                 if epg_rytec == '1': tid = eat['rid']
                 elif epg_provider == 'm':
                     if not eat['mn'] == None: tid = eat['mn']
@@ -557,26 +568,29 @@ def get_live_streams(category_id=None):
 
 
 def get_short_epg(stream_id, limit=None):
-    cur = con.cursor()
+    cur0 = con0.cursor()
+    cur1 = con1.cursor()
+    cur2 = con2.cursor()
+    cur3 = con3.cursor()
     rytec = str(common.get_setting('epg_rytec', 'Vavoo'))
-    
+
     ret = {}
     ret["epg_listings"] = []
     num = 0
     go = False
     if limit is None:
         limit = 4
-    
-    cur.execute('SELECT * FROM channel WHERE id="' + str(stream_id) + '"')
-    chan = cur.fetchone()
+
+    cur1.execute('SELECT * FROM channel WHERE id="' + str(stream_id) + '"')
+    chan = cur1.fetchone()
     if chan:
         if not chan['tid'] == '':
-            cur.execute('SELECT * FROM epgs WHERE id="' + str(chan['tid']) + '"')
-            cat = cur.fetchone()
+            cur3.execute('SELECT * FROM epgs WHERE id="' + str(chan['tid']) + '"')
+            cat = cur3.fetchone()
             if rytec == '1': cid = cat['rid']
             else: cid = chan['tid']
 
-            for e in cur.execute('SELECT * FROM epg WHERE cid="' + str(chan['tid']) + '" ORDER BY start'):
+            for e in cur3.execute('SELECT * FROM epg WHERE cid="' + str(chan['tid']) + '" ORDER BY start'):
                 if go == True or int(e['start']) > int(time.time()) or int(e['end']) > int(time.time()):
                     if int(num) >= int(limit):
                         break
@@ -602,24 +616,27 @@ def get_short_epg(stream_id, limit=None):
 
 
 def get_simple_data_table(stream_id):
-    cur = con.cursor()
+    cur0 = con0.cursor()
+    cur1 = con1.cursor()
+    cur2 = con2.cursor()
+    cur3 = con3.cursor()
     rytec = str(common.get_setting('epg_rytec', 'Vavoo'))
-    
+
     ret = {}
     ret["epg_listings"] = []
     num = 0
     go = False
-    
-    cur.execute('SELECT * FROM channel WHERE id="' + str(stream_id) + '"')
-    chan = cur.fetchone()
+
+    cur1.execute('SELECT * FROM channel WHERE id="' + str(stream_id) + '"')
+    chan = cur1.fetchone()
     if chan:
         if not chan['tid'] == '':
-            cur.execute('SELECT * FROM epgs WHERE id="' + str(chan['tid']) + '"')
-            cat = cur.fetchone()
+            cur3.execute('SELECT * FROM epgs WHERE id="' + str(chan['tid']) + '"')
+            cat = cur3.fetchone()
             if rytec == '1': cid = cat['rid']
             else: cid = chan['tid']
 
-            for e in cur.execute('SELECT * FROM epg WHERE cid="' + str(chan['tid']) + '" ORDER BY start'):
+            for e in cur3.execute('SELECT * FROM epg WHERE cid="' + str(chan['tid']) + '" ORDER BY start'):
                 if int(e['start']) < int(time.time()) and int(e['end']) > int(time.time()): play = 1
                 else: play = 0
                 ret["epg_listings"].append({

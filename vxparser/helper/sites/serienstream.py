@@ -20,6 +20,7 @@ import utils.common as common
 SITE_IDENTIFIER = 'serienstream'
 SITE_NAME = 'SerienStream'
 SITE_ICON = 'serienstream.png'
+SITE_DOMAIN = 's.to (186.2.175.5)'
 
 URL_MAIN = 'http://186.2.175.5'
 proxy = 'false'
@@ -36,8 +37,8 @@ def load():
     password = common.get_setting('serienstream_password')
     if username == '' or password == '': return
     ret = []
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_NEW_SERIES, "typ": 2, "key": "showEntries", "title": "New Series"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_POPULAR, "typ": 2, "key": "showEntries", "title": "Popular Series"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_NEW_SERIES, "typ": 2, "key": "showEntries", "title": "New Series"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_POPULAR, "typ": 2, "key": "showEntries", "title": "Popular Series"})
     return ret
 
 
@@ -59,6 +60,7 @@ def showValue(entryUrl=False):
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showEntries'
         oGuiElement["title"] = sMovieTitle
         oGuiElement["url"] = sUrl
@@ -86,6 +88,7 @@ def showAllSeries(entryUrl=False, sGui=False, sSearchText=False):
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showSeasons'
         oGuiElement["url"] = URL_MAIN + sUrl
         oGuiElement["mediatype"] = 'tvshow'
@@ -109,6 +112,7 @@ def showNewEpisodes(entryUrl=False, sGui=False):
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showSeasons'
         oGuiElement["title"] = sMovieTitle
         oGuiElement["url"] = URL_MAIN + sUrl
@@ -138,6 +142,7 @@ def showEntries(entryUrl=False, sGui=False):
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showSeasons'
         oGuiElement["thumb"] = URL_MAIN + sThumbnail
         oGuiElement["url"] = URL_MAIN + sUrl
@@ -174,6 +179,7 @@ def showSeasons(entryUrl=False):
         if not isMovie: oGuiElement["s"] = sNr
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showEpisodes'
         oGuiElement["url"] = URL_MAIN + sUrl
         oGuiElement["mediatype"] = 'season'
@@ -211,6 +217,7 @@ def showEpisodes(entryUrl=False, sSeason=False, sTVShowTitle=False, sThumbnail=F
             oGuiElement["show"] = sTVShowTitle
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showHosters'
         oGuiElement["surl"] = sUrl
         oGuiElement["url"] = URL_MAIN + sUrl2
@@ -356,6 +363,7 @@ def SSsearch(sSearchText=False):
                 oGuiElement = {}
                 oGuiElement["name"] = title
                 oGuiElement["site"] = SITE_IDENTIFIER
+                oGuiElement["domain"] = SITE_DOMAIN
                 oGuiElement["key"] = 'showSeasons'
                 oGuiElement["url"] = URL_MAIN + link
                 oGuiElement["mediatype"] = 'tvshow'
@@ -367,6 +375,7 @@ def SSsearch(sSearchText=False):
                 oGuiElement = {}
                 oGuiElement["name"] = title
                 oGuiElement["site"] = SITE_IDENTIFIER
+                oGuiElement["domain"] = SITE_DOMAIN
                 oGuiElement["key"] = 'showSeasons'
                 oGuiElement["url"] = URL_MAIN + link
                 oGuiElement["mediatype"] = 'tvshow'

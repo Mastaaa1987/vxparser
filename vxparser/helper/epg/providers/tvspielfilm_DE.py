@@ -115,7 +115,7 @@ def get_channellist():
         
         ch_title = ''
         epg_channels = [] #"123.tv", "13th Street Universal", "3sat", "Animal Planet", "ANIXE", "ARD alpha", "ARTE", "Auto Motor Sport", "AXN", "Bibel TV", "Bloomberg Europe TV", "BR", "Cartoon Network", "Classica", "Comedy Central", "CRIME + INVESTIGATION", "Das Erste", "DAZN", "DELUXE MUSIC", "Deutsches Musik Fernsehen", "Discovery HD", "Disney Channel", "DMAX", "Eurosport 1", "Eurosport 2", "Fix &amp; Foxi", "Health TV", "Heimatkanal", "History HD", "HR", "HSE24", "Jukebox", "kabel eins", "kabel eins classics", "kabel eins Doku", "KiKA", "KinoweltTV", "K-TV", "MDR", "Motorvision TV", "MTV", "N24 Doku", "Nat Geo HD", "NAT GEO WILD", "NDR", "nick", "Nick Jr.", "Nicktoons", "NITRO", "n-tv", "ONE", "ORF 1", "ORF 2", "ORF III", "ORF SPORT +", "PHOENIX", "ProSieben", "ProSieben Fun", "ProSieben MAXX", "Romance TV", "RTL", "RTL Crime", "RTL II", "RTL Living", "RTL Passion", "RTLplus", "SAT.1", "SAT.1 emotions", "SAT.1 Gold", "ServusTV", "Silverline", "sixx", "Sky Action", "Sky Atlantic HD", "Sky Cinema Best Of", "Sky Cinema Classics", "Sky Cinema Fun", "Sky Cinema Premieren", "Sky Cinema Premieren +24", "Sky Cinema Special HD", "Sky Cinema Thriller", "Sky Family", "Sky Krimi", "Sky One", "Sony Channel", "Spiegel Geschichte", "Spiegel TV Wissen", "SUPER RTL", "SWR/SR", "Syfy", "tagesschau24", "Tele 5", "TLC", "TNT Comedy", "TNT Film", "TNT Serie", "TOGGO plus", "Universal Channel HD", "VOX", "VOXup", "WDR", "ZDF", "ZDFinfo", "ZDFneo" ]
-        con = com.con
+        con = com.con3
         cur = con.cursor()
         for row in cur.execute('SELECT * FROM epgs ORDER BY id'):
             if not row["tid"] == None:
@@ -309,7 +309,7 @@ def create_xml_channels():
     rytec = str(com.get_setting('epg_rytec', 'Vavoo'))
     if rytec == '1':
         epg_channels = {}
-        con = com.con
+        con = com.con3
         cur = con.cursor()
         for row in cur.execute('SELECT * FROM epgs ORDER BY id'):
             if not row["tid"] == None and not row["tid"] == '':
@@ -361,7 +361,7 @@ def create_xml_broadcast(enable_rating_mapper, thread_temppath, download_threads
     rytec = str(com.get_setting('epg_rytec', 'Vavoo'))
     epg_channels = {}
     epg_ids = {}
-    con = com.con
+    con = com.con3
     cur = con.cursor()
     for row in cur.execute('SELECT * FROM epgs ORDER BY id'):
         if not row["tid"] == None and not row["tid"] == '':

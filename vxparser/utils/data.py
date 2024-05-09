@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, os, json, requests, urllib3, time, aiohttp, asyncio, re, random
+import sys, os, json, requests, time, aiohttp, asyncio, re, random
 from base64 import b64encode, b64decode 
 from unidecode import unidecode
 from re import search
@@ -8,12 +8,14 @@ import utils.common as com
 import utils.vavoo as vavoo
 
 unicode = str
-urllib3.disable_warnings()
 
 BASEURL = "https://www2.vavoo.to/ccapi/"
 cachepath = os.path.join(com.dp, 'vavoo')
 cp = com.cp
-con = com.con
+con0 = com.con0
+con1 = com.con1
+con2 = com.con2
+con3 = com.con3
 
 if not os.path.exists(cachepath):
     os.makedirs(cachepath)

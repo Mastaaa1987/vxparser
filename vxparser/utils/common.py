@@ -1,6 +1,7 @@
 import random, os, string, time, socket, sys, sqlite3, json
 from unidecode import unidecode
 
+VERSION = '1.3.8'
 unicode = str
 rp = os.path.normpath(os.path.dirname(os.path.abspath(__file__))+'/../')
 
@@ -15,19 +16,33 @@ from helper import sites, sql
 dp = os.path.join(rp, 'data')
 cp = os.path.join(dp, 'cache')
 lp = os.path.join(dp, 'lists')
-db = os.path.join(dp, 'data.db')
+db0 = os.path.join(dp, 'common.db')
+db1 = os.path.join(dp, 'live.db')
+db2 = os.path.join(dp, 'vod.db')
+db3 = os.path.join(dp, 'epg.db')
+
 if not os.path.exists(dp):
     os.makedirs(dp)
 if not os.path.exists(cp):
     os.makedirs(cp)
 if not os.path.exists(lp):
     os.makedirs(lp)
-con = sqlite3.connect(db)
-con.row_factory = lambda c, r: dict([(col[0], r[idx]) for idx, col in enumerate(c.description)])
-con.text_factory = lambda x: unicode(x, errors='ignore')
+
+con0 = sqlite3.connect(db0)
+con0.row_factory = lambda c, r: dict([(col[0], r[idx]) for idx, col in enumerate(c.description)])
+con0.text_factory = lambda x: unicode(x, errors='ignore')
+con1 = sqlite3.connect(db1)
+con1.row_factory = lambda c, r: dict([(col[0], r[idx]) for idx, col in enumerate(c.description)])
+con1.text_factory = lambda x: unicode(x, errors='ignore')
+con2 = sqlite3.connect(db2)
+con2.row_factory = lambda c, r: dict([(col[0], r[idx]) for idx, col in enumerate(c.description)])
+con2.text_factory = lambda x: unicode(x, errors='ignore')
+con3 = sqlite3.connect(db3)
+con3.row_factory = lambda c, r: dict([(col[0], r[idx]) for idx, col in enumerate(c.description)])
+con3.text_factory = lambda x: unicode(x, errors='ignore')
 
 def Logger(lvl, msg, name=None, typ=None):
-    if int(lvl) >= int(get_setting('log_lvl', 'Main')) or int(lvl) == 0:
+    if int(lvl) >= int(get_setting('log_lvl', 'Main')) or int(lvl) == 0 or int(lvl) == 9:
         if name or typ:
             if name and typ: 
                 print('[%s][%s]:: %s' %(str(typ).upper(), str(name).upper(), str(msg)))
@@ -37,8 +52,6 @@ def Logger(lvl, msg, name=None, typ=None):
                 print('[%s]:: %s' %(str(typ).upper(), str(msg)))
             return
         print(msg)
-    #CLIENT.send_message(b'/echo', [msg.encode('utf8'), ])
-
 
 def get_ip_address():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -90,56 +103,66 @@ def get_cache(key, path=None):
 
 
 def clear_cache():
-    if os.path.exists(dp):
-        import shutil
-        con.close()
-        shutil.rmtree(dp)
+    import shutil
+    if os.path.exists(cp):
+        shutil.rmtree(cp)
+    if os.path.exists(lp):
+        shutil.rmtree(lp)
     return True
-    
 
 
 def clean_tables(item=None):
     if item:
-        cur = con.cursor()
         if item == 'live':
+            cur = con1.cursor()
             cur.execute('DROP TABLE IF EXISTS channel')
+            con1.commit()
         if item == 'streams':
+            cur = con2.cursor()
             cur.execute('DROP TABLE IF EXISTS streams')
             cur.execute('DROP TABLE IF EXISTS info')
+            con2.commit()
         if item == 'settings':
+            cur = con0.cursor()
             cur.execute('DROP TABLE IF EXISTS settings')
-        con.commit()
+            con0.commit()
         check()
         return True
     return False
 
 
 def add_tables():
-    cur = con.cursor()
+    cur = con0.cursor()
     cur.execute('CREATE TABLE IF NOT EXISTS settings ("name" TEXT, "grp" TEXT, "value" TEXT, "info" TEXT, "default" TEXT, "type" TEXT, "values" TEXT)')
+    cur.execute('CREATE TABLE IF NOT EXISTS categories ("category_id" INTEGER PRIMARY KEY AUTOINCREMENT, "media_type" TEXT, "category_name" TEXT, "parent_id" INTEGER)')
+    con0.commit()
+    cur = con1.cursor()
     cur.execute('CREATE TABLE IF NOT EXISTS channel ("id" INTEGER PRIMARY KEY AUTOINCREMENT, "name" TEXT, "grp" TEXT, "logo" TEXT, "tid" TEXT, "url" TEXT, "display" TEXT, "country" TEXT, "cid" INTEGER, "hls" TEXT)')
+    con1.commit()
+    cur = con2.cursor()
     cur.execute('CREATE TABLE IF NOT EXISTS streams ("id" INTEGER PRIMARY KEY AUTOINCREMENT, "sid" INTEGER, "site" TEXT, "key" TEXT, "p2" TEXT, "media_type" TEXT, "season" TEXT, "episode" TEXT, "name" TEXT, "url" TEXT, "thumb" TEXT)')
     cur.execute('CREATE TABLE IF NOT EXISTS info ("id" INTEGER PRIMARY KEY AUTOINCREMENT, "site" TEXT, "category_id" INTEGER, "tmdb_id" INTEGER, "media_type" TEXT, "name" TEXT, "originalName" TEXT, "releaseDate" TEXT, "genres" TEXT, "description" TEXT, "countries" TEXT, "rating" TEXT, "votes" TEXT, "duration" TEXT, "poster" TEXT, "backdrop" TEXT, "quality" TEXT)')
-    cur.execute('CREATE TABLE IF NOT EXISTS categories ("category_id" INTEGER PRIMARY KEY AUTOINCREMENT, "media_type" TEXT, "category_name" TEXT, "parent_id" INTEGER)')
+    con2.commit()
+    cur = con3.cursor()
     cur.execute('CREATE TABLE IF NOT EXISTS epg ( "id" INTEGER PRIMARY KEY AUTOINCREMENT, "cid" TEXT, "start" INTEGER, "end" INTEGER, "title" TEXT, "desc" TEXT, "lang" TEXT)')
     cur.execute('CREATE TABLE IF NOT EXISTS epgs ( "id" INTEGER PRIMARY KEY AUTOINCREMENT, "rid" TEXT, "mid" TEXT, "mn" TEXT, "tid" TEXT, "tn" TEXT, "display" TEXT, "ol" TEXT, "ml" TEXT, "tl" TEXT, "name" TEXT, "name1" TEXT, "name2" TEXT, "name3" TEXT, "name4" TEXT, "name5" TEXT)')
-    con.commit()
+    con3.commit()
     return True
 
 
 def check_epg_tables():
     epg = sql.epg
-    cur = con.cursor()
+    cur = con3.cursor()
     for row in epg:
         cur.execute('SELECT * FROM epgs WHERE rid="' + row[1] + '"')
         data = cur.fetchone()
         if not data:
             cur.execute('INSERT INTO epgs VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', row)
-    con.commit()
+    con3.commit()
 
 
 def check_category_tables():
-    cur = con.cursor()
+    cur = con0.cursor()
     groups = ['Sky','Sport','Cine','Germany']
     for g in groups:
         cur.execute('SELECT * FROM categories WHERE category_name="' + g + '" AND media_type="' + str('live') + '"')
@@ -164,7 +187,7 @@ def check_category_tables():
     test = cur.fetchone()
     if not test:
         cur.execute('INSERT INTO categories VALUES (NULL,"' + str('tvshow') + '","' + str('vavoo') + '","' + str('0') + '")')
-    con.commit()
+    con0.commit()
 
 
 def check_settings_tables():
@@ -173,20 +196,20 @@ def check_settings_tables():
         ('server_ip', 'Main', '', 'Server IP for M3U8 List Creation', '', 'text', ''),
         ('server_port', 'Main', '8080', 'Server Port', '8080', 'text', ''),
         ('server_service', 'Main', '1', 'Set Automatic Network IP to Server IP Setting', '1', 'bool', '{"1": "On", "0": "Off"}'),
-        ('m3u8_service', 'Main', '0', 'Automatic M3U8 List Creation for LiveTV als Service', '0', 'bool', '{"1": "On", "0": "Off"}'),
-        ('m3u8_sleep', 'Main', '12', 'Sleep Time for List Creation Service in Stunden', '12', 'text', ''),
+        ('m3u8_service', 'Main', '1', 'Automatic M3U8 List Creation for LiveTV als Service', '1', 'bool', '{"1": "On", "0": "Off"}'),
+        ('m3u8_sleep', 'Main', '96', 'Sleep Time for List Creation Service in Stunden', '96', 'text', ''),
         ('log_lvl', 'Main', '1', 'LogLevel', '1', 'select', '{"1": "Info", "3": "Error"}'),
         ('get_tmdb', 'Main', '0', 'Search in TMDB after VoD & Series Infos', '0', 'bool', '{"1": "On", "0": "Off"}'),
         ('serienstream_username', 'Main', '', 'Username of S.to User Accound', '', 'text', ''),
         ('serienstream_password', 'Main', '', 'Password for S.to User Accound', '', 'text', ''),
-        ('xtream_codec', 'Main', 't', 'Bevorzugter codec für Xtream Codes', 't', 'select', '{"t": "ts", "h": "hls"}'),
+        ('xtream_codec', 'Main', 'h', 'Bevorzugter codec für Xtream Codes', 'h', 'select', '{"t": "ts", "h": "hls"}'),
         ('m3u8', 'Loop', '0', '', '', '', ''),
         ('epg', 'Loop', '0', '', '', '', ''),
         ('osc_port', 'Hidden', '0', '', '', '', ''),
         ('m3u8_hls', 'Vavoo', '1', 'Generate HLS m3u8', '1', 'bool', '{"1": "On", "0": "Off"}'),
         ('m3u8_name', 'Vavoo', '1', 'Vavoo Channel Namen ersetzen', '1', 'bool', '{"1": "On", "0": "Off"}'),
         ('epg_provider', 'Vavoo', 'm', 'Provider to get EPG Infos', 'm', 'select', '{"m": "Magenta", "t": "TvSpielfilme"}'),
-        ('epg_service', 'Vavoo', '0', 'Start epg.xml.gz Creation for LiveTV als Service', '0', 'bool', '{"1": "On", "0": "Off"}'),
+        ('epg_service', 'Vavoo', '1', 'Start epg.xml.gz Creation for LiveTV als Service', '1', 'bool', '{"1": "On", "0": "Off"}'),
         ('epg_sleep', 'Vavoo', '5', 'Sleep Time for epg.xml.gz Creation Service in Tagen', '5', 'text', ''),
         ('epg_grab', 'Vavoo', '7', 'Anzahl an Tagen für epg.xml.gz Erstellung', '7', 'text', ''),
         ('epg_rytec', 'Vavoo', '1', 'Provider IDs mit Rytec ersetzen', '1', 'bool', '{"1": "On", "0": "Off"}'),
@@ -196,13 +219,13 @@ def check_settings_tables():
         name = site.SITE_IDENTIFIER
         sett.append((name+'_auto', 'Xstream', '1', 'Benutze %s Site in Automatic Modus' % name, '1', 'bool', '{"1": "On", "0": "Off"}'))
         sett.append((name+'_search', 'Xstream', '1', 'Suche auf %s Site' % name, '1', 'bool', '{"1": "On", "0": "Off"}'))
-    cur = con.cursor()
+    cur = con0.cursor()
     for row in sett:
         cur.execute('SELECT * FROM settings WHERE name="' + row[0] + '"')
         data = cur.fetchone()
         if not data:
             cur.execute('INSERT INTO settings VALUES (?,?,?,?,?,?,?)', row)
-    con.commit()
+    con0.commit()
 
 
 def check():
@@ -234,16 +257,17 @@ def gen_hash(length=32):
 
 
 def get_setting(name, group=None):
-    cur = con.cursor()
+    cur = con0.cursor()
+    data = None
     if name:
         cur.execute('SELECT * FROM settings WHERE name="' + name + '"')
         data = cur.fetchone()
-        if data: return data['value']
+    if data: return data['value']
     return None
 
 
 def set_setting(name, value, group=None):
-    cur = con.cursor()
+    cur = con0.cursor()
     cur.execute('SELECT * FROM settings WHERE name="' + name + '"')
     test = cur.fetchone()
     if test:
@@ -253,7 +277,7 @@ def set_setting(name, value, group=None):
         else: g = 'Hidden'
         row = ( name, g, value, '', '', '', '' )
         cur.execute('INSERT INTO settings VALUES (?,?,?,?,?,?,?)', row)
-    con.commit()
+    con0.commit()
     return True
 
 

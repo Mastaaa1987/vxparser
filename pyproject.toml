@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vxparser"
-version = "1.3.2"
+version = "1.3.5"
 description = "FastApi Server backend for VAVOO Live TV & German Xstream VOD's & Series, to publish it via Xtream Code api."
 authors = ["Mastaaa <sebastianspaaa@gmail.com>"]
 readme = "README.md"
@@ -8,7 +8,7 @@ packages = [{include = "vxparser"}]
 
 [tool.poetry.dependencies]
 python = ">=3.8"
-aiohttp = "^3.8.1"
+aiohttp = "^3.8.5"
 fastapi = "^0.95.0"
 requests = "^2.31.0"
 uvicorn = "^0.13.3"

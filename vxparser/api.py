@@ -1,4 +1,4 @@
-import time, os, sys, signal, inquirer, asyncio, uvicorn, re
+import time, os, sys, signal, asyncio, uvicorn, re
 from concurrent.futures import ProcessPoolExecutor
 from typing import Union
 from typing_extensions import Annotated
@@ -6,7 +6,9 @@ from notifications_android_tv import Notifications
 
 from uvicorn import Server, Config
 from fastapi import FastAPI, HTTPException, Request, Response, Body, Form
-from fastapi.responses import JSONResponse, StreamingResponse, RedirectResponse, FileResponse
+from fastapi.responses import JSONResponse, StreamingResponse, RedirectResponse, FileResponse, HTMLResponse, PlainTextResponse
+from contextlib import asynccontextmanager
+from typing import AsyncIterator
 from pydantic import BaseModel
 from multiprocessing import Process
 #from threading import Thread as Process
@@ -20,11 +22,15 @@ import utils.user as user
 
 import resolveurl as resolver
 from helper import sites
-import cli, services
+from helper.proxy import ForwardHttpProxy
 
 cachepath = common.cp
 listpath = common.lp
-con = common.con
+rootpath = common.rp
+con0 = common.con0
+con1 = common.con1
+con2 = common.con2
+con3 = common.con3
 
 common.check()
 
@@ -41,8 +47,17 @@ class UvicornServer(Process):
         server = Server(config=self.config)
         server.run()
 
+proxy = ForwardHttpProxy()
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(application: FastAPI) -> AsyncIterator[None]:
+    # Init
+    application.state.aGlobaVar = "request.app.state.aGlobaVar"
+    yield # Run
+    # Stop
+    await proxy.aclose()
+
+app = FastAPI(lifespan=lifespan)
 links = {}
 linked = {}
 
@@ -81,6 +96,8 @@ linked = {}
 
 # API XTREAM-CODES
 ############################################################################################################
+@app.head("/get.php")
+@app.options("/get.php", status_code=204)
 @app.get("/get.php")
 async def get_get(username: Union[str, None] = None, password: Union[str, None] = None, type: Union[str, None] = None, output: Union[str, None] = None):
     if username is None: username = "nobody"
@@ -100,7 +117,7 @@ async def get_get(username: Union[str, None] = None, password: Union[str, None] 
         file = open(of, "rb")
         if typ == 'm3u8_plus': headers = {'Content-Disposition': 'attachment; filename="tv_channels_%s_plus.m3u"' % username, 'Content-Description': 'File Transfer'}
         else: headers = {'Content-Disposition': 'attachment; filename="tv_channels_%s.m3u"' % username, 'Content-Description': 'File Transfer'}
-        return StreamingResponse(file, headers=headers, media_type="application/octet-stream")
+        return StreamingResponse(file, headers=headers, media_type="application/vnd.apple.mpegurl; charset=utf-8")
     else:
         raise HTTPException(status_code=404, detail="File not found")
 
@@ -125,16 +142,18 @@ async def get_post(username: Annotated[str, Form()] = None, password: Annotated[
         file = open(of, "rb")
         if typ == 'm3u8': headers = {'Content-Disposition': 'attachment; filename="tv_channels_%s_plus.m3u"' % username, 'Content-Description': 'File Transfer'}
         else: headers = {'Content-Disposition': 'attachment; filename="tv_channels_%s.m3u"' % username, 'Content-Description': 'File Transfer'}
-        return StreamingResponse(file, headers=headers, media_type="application/octet-stream")
+        return StreamingResponse(file, headers=headers, media_type="application/vnd.apple.mpegurl; charset=utf-8")
     else:
         raise HTTPException(status_code=404, detail="File not found")
 
 
+@app.head("/player_api.php")
+@app.options("/player_api.php", status_code=204)
 @app.get("/player_api.php")
 async def player_get(username: Union[str, None] = None, password: Union[str, None] = None, action: Union[str, None] = None, vod_id: Union[str, None] = None, series_id: Union[str, None] = None, stream_id: Union[str, None] = None, limit: Union[str, None] = None, category_id: Union[str, None] = None, params: Union[str, None] = None):
     if username is None: username = "nobody"
     if password is None: password = "pass"
-    
+
     user_data = user.auth(username, password)
     if action is None:
         return {
@@ -198,6 +217,8 @@ async def player_post(username: Annotated[str, Form()] = None, password: Annotat
             return video.get_short_epg(stream_id, limit)
 
 
+@app.head("/panel_api.php")
+@app.options("/panel_api.php", status_code=204)
 @app.get("/panel_api.php")
 async def panel_get(username: Union[str, None] = None, password: Union[str, None] = None, action: Union[str, None] = None):
     if username is None: username = "nobody"
@@ -226,13 +247,15 @@ async def panel_post(username: Annotated[str, Form()] = None, password: Annotate
     }
 
 
+@app.head("/live/{any_path:path}")
+@app.options("/live/{any_path:path}", status_code=204)
 @app.get("/live/{username}/{password}/{sid}.{ext}", response_class=RedirectResponse, status_code=302)
-async def live(username: str, password: str, sid: str, ext: str):
+async def live(request: Request, username: str, password: str, sid: str, ext: str):
     if username is None: username = "nobody"
     if password is None: password = "pass"
 
     user_data = user.auth(username, password)
-    cur = con.cursor()
+    cur = con1.cursor()
     cur.execute('SELECT * FROM channel WHERE id="' + sid + '"')
     data = cur.fetchone()
     if str(common.get_setting('xtream_codec')) == 't':
@@ -240,24 +263,27 @@ async def live(username: str, password: str, sid: str, ext: str):
         if data and sig:
             url = str(data['url'])
             link = url + '?n=1&b=5&vavoo_auth=' + sig
-            return link
+            return await proxy.stream(request=request, stream_url=link)
         else: raise HTTPException(status_code=404, detail="Stream not found")
     else:
         if data:
             link = vavoo.resolve_link(data['hls'])
             if link:
+                #return await proxy.stream(request=request, stream_url=link)
                 return link
             else: raise HTTPException(status_code=404, detail="Stream not found")
         else: raise HTTPException(status_code=404, detail="Stream not found")
 
 
-@app.get("/{typ}/{username}/{password}/{sid}.{ext}", response_class=RedirectResponse, status_code=302)
-async def vod(typ: str, username: str, password: str, sid: str, ext: str):
+@app.head("/{typ}/{any_path:path}")
+@app.options("/{typ}/{any_path:path}", status_code=204)
+@app.get("/{typ}/{username}/{password}/{sid}.{ext}", response_class=StreamingResponse, status_code=200)
+async def vod(request: Request, typ: str, username: str, password: str, sid: str, ext: str):
     if username is None: username = "nobody"
     if password is None: password = "pass"
 
     user_data = user.auth(username, password)
-    cur = con.cursor()
+    cur = con2.cursor()
     cur.execute('SELECT * FROM streams WHERE id="' + sid + '"')
     data = cur.fetchone()
     if not data:
@@ -294,13 +320,15 @@ async def vod(typ: str, username: str, password: str, sid: str, ext: str):
                 raise HTTPException(status_code=404, detail="Link (%s/%s) not found" %(str(linked[sid][username]), str(len(links[sid]))))
             elif "voe" in link.lower():
                 link = re.sub('\|User-Agent=.*', '', link)
-            return link
+            return await proxy.stream(request=request, stream_url=link)
         elif len(links[sid]) > 1:
             linked[sid][username] = 0
             return
     else: raise HTTPException(status_code=404, detail="Stream not found")
 
 
+@app.head("/xmltv.php")
+@app.options("/xmltv.php", status_code=204)
 @app.get("/xmltv.php")
 async def epg(username: str, password: str):
     if username is None: username = "nobody"
@@ -318,64 +346,70 @@ async def epg(username: str, password: str):
 
 # VAVOO API
 ############################################################################################################
-@app.get("/")
-async def root(response: Response):
-    data = ''
-    listdir = os.listdir(listpath)
-    for l in listdir:
-        data += '<a href="'+l+'">'+l+'</a><br>'
-    return Response(content=data, media_type="text/html")
-
-
-@app.get("/epg.xml.gz", response_class=RedirectResponse, status_code=302)
-async def gz():
+@app.head("/epg.xml.gz")
+@app.options("/epg.xml.gz", status_code=204)
+@app.get("/epg.xml.gz", response_class=StreamingResponse, status_code=200)
+def gz():
     f = os.path.join(listpath, 'epg.xml.gz')
     if os.path.exists(f):
-        file = open(f, "rb")
-        return StreamingResponse(file)
+        def iterfile():
+            with open(f, mode="rb") as file_like:
+                yield from file_like
+        return StreamingResponse(iterfile(), media_type="application/gzip")
     else:
         raise HTTPException(status_code=404, detail="File not found")
 
 
-@app.get("/{m3u8}.{ext}", response_class=RedirectResponse, status_code=302)
-async def m3u8(m3u8: str, ext: str):
+@app.head("/{m3u8}.m3u8")
+@app.options("/{m3u8}.m3u8", status_code=204)
+@app.get("/{m3u8}.m3u8", response_class=StreamingResponse, status_code=200)
+def m3u8(m3u8: str):
     f = os.path.join(listpath, m3u8+'.m3u8')
     if os.path.exists(f):
-        file = open(f, "rb")
-        return StreamingResponse(file)
-    else: 
+        playlisttyp = "application/vnd.apple.mpegurl; charset=utf-8" if m3u8.endswith("_hls") else "application/octet-stream"
+        def iterfile():
+            with open(f, mode="rb") as file_like:
+                yield from file_like
+        return StreamingResponse(iterfile(), media_type=playlisttyp)
+    else:
         raise HTTPException(status_code=404, detail="File not found")
 
-
-@app.get("/channel/{sid}", response_class=RedirectResponse, status_code=302)
-async def channel(sid: str):
-    cur = con.cursor()
+@app.head("/channel/{sid}")
+@app.options("/channel/{sid}", status_code=204)
+@app.get("/channel/{sid}", response_class=StreamingResponse, status_code=200)
+async def channel(request: Request, sid: str):
+    cur = con1.cursor()
     cur.execute('SELECT * FROM channel WHERE id="' + sid + '"')
     data = cur.fetchone()
     sig = vavoo.getAuthSignature()
     if data and sig:
         url = str(data['url'])
         link = url + '?n=1&b=5&vavoo_auth=' + sig
-        return link
+        return await proxy.stream(request=request, stream_url=link)
     else: raise HTTPException(status_code=404, detail="Stream not found")
 
 
+@app.head("/hls/{sid}")
+@app.options("/hls/{sid}", status_code=204)
 @app.get("/hls/{sid}", response_class=RedirectResponse, status_code=302)
-async def channel(sid: str):
-    cur = con.cursor()
+async def channel(request: Request, sid: str):
+    cur = con1.cursor()
     cur.execute('SELECT * FROM channel WHERE id="' + sid + '"')
     data = cur.fetchone()
     if data:
         link = vavoo.resolve_link(data['hls'])
         if link:
+            # return await proxy.stream(request=request, stream_url=link)
             return link
         else: raise HTTPException(status_code=404, detail="Stream not found")
     else: raise HTTPException(status_code=404, detail="Stream not found")
 
 
-@app.get("/stream/{sid}", response_class=RedirectResponse, status_code=302)
-async def stream(sid: str):
-    cur = con.cursor()
+@app.head("/stream/{sid}")
+@app.options("/stream/{sid}", status_code=204)
+@app.get("/stream/{sid}", response_class=StreamingResponse, status_code=200)
+async def stream(request: Request, sid: str):
+    cur = con2.cursor()
     cur.execute('SELECT * FROM streams WHERE id="' + sid + '"')
     data = cur.fetchone()
     if not data:
@@ -401,7 +435,7 @@ async def stream(sid: str):
                 except Exception:
                     link = None
             linked[sid] += 1
-            if link is None: 
+            if link is None:
                 notify = Notifications("0.0.0.0")
                 try:
                     await notify.async_connect()
@@ -409,9 +443,45 @@ async def stream(sid: str):
                 except Exception:
                     Logger(1, "Link (%s/%s) not found" %(str(linked[sid]), str(len(links[sid]))))
                 raise HTTPException(status_code=404, detail="Link (%s/%s) not found" %(str(linked[sid]), str(len(links[sid]))))
-            return link
+            return await proxy.stream(request=request, stream_url=link)
         elif len(links[sid]) > 1:
             linked[sid] = 0
             return
     else: raise HTTPException(status_code=404, detail="Stream not found")
 
+
+@app.head("/{name}.{ext}")
+@app.options("/{name}.{ext}", status_code=204)
+@app.get("/{name}.{ext}", response_class=FileResponse, status_code=200)
+def main(name: str, ext: str):
+    # https://fastapi.tiangolo.com/tutorial/static-files/
+    if os.path.exists(os.path.join(rootpath, name+'.'+ext)):
+        f = os.path.join(rootpath, name+'.'+ext)
+    elif os.path.exists(os.path.join(rootpath, 'html', name+'.'+ext)):
+        f = os.path.join(rootpath, 'html', name+'.'+ext)
+    else: raise HTTPException(status_code=404, detail="File not found")
+    return f
+
+
+@app.head("/")
+@app.options("/", status_code=204)
+@app.get("/", response_class=HTMLResponse, status_code=200)
+def root():
+    data = ''
+    listdir = os.listdir(listpath)
+    for l in listdir:
+        data += '<a href="'+l+'">'+l+'</a><br>'
+    return data
+
+
+@app.head("/video/{sid}")
+@app.options("/video/{sid}", status_code=204)
+@app.get("/video/{sid}", response_class=HTMLResponse, status_code=200)
+async def videoplayer(sid: str):
+    # TODO streaming requires video.js hls-player and dynamic proxy-routing capabilities
+    content = f"""
+<body>
+<video controls width="1280px" height="720px" preload="none" src="/hls/{sid}" />
+</body>
+    """
+    return content

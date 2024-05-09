@@ -13,15 +13,21 @@ import services
 
 cachepath = com.cp
 listpath = com.lp
-con = com.con
+con0 = com.con0
+con1 = com.con1
+con2 = com.con2
+con3 = com.con3
+
 jobs = services.jobs
 
 unicode = str
 
 
 def updateDB(loads):
-    con.text_factory = lambda x: unicode(x, errors='ignore')
-    cur = con.cursor()
+    cur0 = con0.cursor()
+    cur1 = con1.cursor()
+    cur2 = con2.cursor()
+    cur3 = con3.cursor()
     i = s = n = m = 0
     site = None
 
@@ -37,11 +43,11 @@ def updateDB(loads):
                     if entry["mediatype"] == 'movie' or entry["mediatype"] == 'tvshow':
                         media_type = entry["mediatype"]
                         name = entry["name"].replace("\\\"", "").replace("'", "").replace("\"", "")
-                        cur.execute('SELECT * FROM info WHERE name="' + str(name) + '" AND site="' + str(entry["site"]) + '" AND media_type="' + str(media_type) + '"')
-                        row = cur.fetchone()
+                        cur2.execute('SELECT * FROM info WHERE name="' + str(name) + '" AND site="' + str(entry["site"]) + '" AND media_type="' + str(media_type) + '"')
+                        row = cur2.fetchone()
                         if not row:
-                            cur.execute('SELECT * FROM categories WHERE category_name="' + str(entry["site"]) + '" AND media_type="' + str(media_type) + '"')
-                            cat = cur.fetchone()
+                            cur0.execute('SELECT * FROM categories WHERE category_name="' + str(entry["site"]) + '" AND media_type="' + str(media_type) + '"')
+                            cat = cur0.fetchone()
                             if cat: cid = cat['category_id']
                             else: cid = 0
                             if "originaltitle" in meta: originalName = meta["originaltitle"].replace("\\\"", "").replace("'", "").replace("\"", "")
@@ -72,21 +78,21 @@ def updateDB(loads):
                             else: backdrop = ''
                             if "quality" in entry: quality = entry["quality"]
                             else: quality = ''
-                            cur.execute('INSERT INTO info VALUES (NULL,"'+str(entry["site"])+'","'+str(cid)+'","'+str(tmdb)+'","'+str(media_type)+'","'+str(name)+'","'+str(originalName)+'","'+str(releaseDate)+'","'+str(genres)+'","'+str(description)+'","'+str(countries)+'","'+str(rating)+'","'+str(votes)+'","'+str(duration)+'","'+str(poster)+'","'+str(backdrop)+'","'+str(quality)+'")')
+                            cur2.execute('INSERT INTO info VALUES (NULL,"'+str(entry["site"])+'","'+str(cid)+'","'+str(tmdb)+'","'+str(media_type)+'","'+str(name)+'","'+str(originalName)+'","'+str(releaseDate)+'","'+str(genres)+'","'+str(description)+'","'+str(countries)+'","'+str(rating)+'","'+str(votes)+'","'+str(duration)+'","'+str(poster)+'","'+str(backdrop)+'","'+str(quality)+'")')
                             i += 1
-                            cur.execute('SELECT * FROM info WHERE name="' + str(name) + '" AND site="' + str(entry["site"]) + '" AND media_type="' + str(media_type) + '"')
-                            row = cur.fetchone()
+                            cur2.execute('SELECT * FROM info WHERE name="' + str(name) + '" AND site="' + str(entry["site"]) + '" AND media_type="' + str(media_type) + '"')
+                            row = cur2.fetchone()
                         else: n += 1
                         sid = row['id']
                     if entry["key"] == 'showHosters' or entry["key"] == 'showEpisodeHosters':
-                        cur.execute('SELECT * FROM streams WHERE sid="' + str(sid) + '"')
-                        row = cur.fetchone()
+                        cur2.execute('SELECT * FROM streams WHERE sid="' + str(sid) + '"')
+                        row = cur2.fetchone()
                         if not row:
                             if "p2" in entry: p2 = entry["p2"]
                             else: p2 = ''
                             if "thumb" in entry: thumb = entry["thumb"]
                             else: thumb = ''
-                            cur.execute('INSERT INTO streams VALUES (NULL,"'+str(sid)+'","'+str(entry["site"])+'","'+str(entry["key"])+'","'+str(p2)+'","'+str(media_type)+'",NULL,NULL,"'+str(name)+'","'+str(entry["url"])+'","'+str(thumb)+'")')
+                            cur2.execute('INSERT INTO streams VALUES (NULL,"'+str(sid)+'","'+str(entry["site"])+'","'+str(entry["key"])+'","'+str(p2)+'","'+str(media_type)+'",NULL,NULL,"'+str(name)+'","'+str(entry["url"])+'","'+str(thumb)+'")')
                             s += 1
                         else: m += 1
                     if entry["key"] == 'showSeasons' and "entries" in entry:
@@ -107,8 +113,8 @@ def updateDB(loads):
                                             elif "e" in season: ep = season["e"]
                                             elif "e" in entry: ep = entry["e"]
                                             else: ep = z
-                                            cur.execute('SELECT * FROM streams WHERE sid="' + str(sid) + '" AND season="' + str(se) + '" AND episode="' + str(ep) + '"')
-                                            row = cur.fetchone()
+                                            cur2.execute('SELECT * FROM streams WHERE sid="' + str(sid) + '" AND season="' + str(se) + '" AND episode="' + str(ep) + '"')
+                                            row = cur2.fetchone()
                                             if not row:
                                                 if "p2" in episode: p2 = episode["p2"]
                                                 else: p2 = ''
@@ -116,7 +122,7 @@ def updateDB(loads):
                                                 elif "thumb" in season: thumb = season["thumb"]
                                                 elif "thumb" in entry: thumb = entry["thumb"]
                                                 else: thumb = ''
-                                                cur.execute('INSERT INTO streams VALUES (NULL,"'+str(sid)+'","'+str(entry["site"])+'","'+str(episode["key"])+'","'+str(p2)+'","'+str(media_type)+'","'+str(se)+'","'+str(ep)+'","'+str(name)+'","'+str(episode["url"])+'","'+str(thumb)+'")')
+                                                cur2.execute('INSERT INTO streams VALUES (NULL,"'+str(sid)+'","'+str(entry["site"])+'","'+str(episode["key"])+'","'+str(p2)+'","'+str(media_type)+'","'+str(se)+'","'+str(ep)+'","'+str(name)+'","'+str(episode["url"])+'","'+str(thumb)+'")')
                                                 s += 1
                                             else: m += 1
                     if entry["key"] == 'showEpisodes' and "entries" in entry:
@@ -130,18 +136,21 @@ def updateDB(loads):
                                 if "e" in episode: ep = episode["e"]
                                 elif "e" in entry: ep = entry["e"]
                                 else: ep = x
-                                cur.execute('SELECT * FROM streams WHERE sid="' + str(sid) + '" AND season="' + str(se) + '" AND episode="' + str(ep) + '"')
-                                row = cur.fetchone()
+                                cur2.execute('SELECT * FROM streams WHERE sid="' + str(sid) + '" AND season="' + str(se) + '" AND episode="' + str(ep) + '"')
+                                row = cur2.fetchone()
                                 if not row:
                                     if "p2" in episode: p2 = episode["p2"]
                                     else: p2 = ''
                                     if "thumb" in episode: thumb = episode["thumb"]
                                     elif "thumb" in entry: thumb = entry["thumb"]
                                     else: thumb = ''
-                                    cur.execute('INSERT INTO streams VALUES (NULL,"'+str(sid)+'","'+str(entry["site"])+'","'+str(episode["key"])+'","'+str(p2)+'","'+str(media_type)+'","'+str(se)+'","'+str(ep)+'","'+str(name)+'","'+str(episode["url"])+'","'+str(thumb)+'")')
+                                    cur2.execute('INSERT INTO streams VALUES (NULL,"'+str(sid)+'","'+str(entry["site"])+'","'+str(episode["key"])+'","'+str(p2)+'","'+str(media_type)+'","'+str(se)+'","'+str(ep)+'","'+str(name)+'","'+str(episode["url"])+'","'+str(thumb)+'")')
                                     s += 1
                                 else: m += 1                        
-        con.commit()
+        con0.commit()
+        con1.commit()
+        con2.commit()
+        con3.commit()
     if site == None:
         if "site" in loads[0]: site = loads[0]["site"]
         elif "entries" in loads[0]:
@@ -225,9 +234,9 @@ def genLists():
     tf = open(os.path.join(listpath, 'vod.m3u8'), "w")
     tf.write("#EXTM3U")
     hurl = 'http://'+str(ip())+':'+str(com.get_setting('server_port', 'Main'))
-    cur = con.cursor()
+    cur2 = con2.cursor()
     i = 0
-    for row in cur.execute('SELECT * FROM streams WHERE media_type="movie" ORDER BY id'):
+    for row in cur2.execute('SELECT * FROM streams WHERE media_type="movie" ORDER BY id'):
         if row['thumb'].startswith('http'): tf.write('\n#EXTINF:-1 group-title="%s" tvg-logo="%s" tvg-id="vod%s",%s' % (row['site'], row['thumb'], row['id'], row['name']))
         else: tf.write('\n#EXTINF:-1 group-title="%s" tvg-id="vod%s",%s' % (row['site'], row['id'], row['name']))
         tf.write('\n%s/stream/%s' % (hurl, row['id']))
@@ -241,7 +250,7 @@ def genLists():
     tf.write("#EXTM3U")
     hurl = 'http://'+str(ip())+':'+str(com.get_setting('server_port', 'Main'))
     j = 0
-    for row in cur.execute('SELECT * FROM streams WHERE media_type="tvshow" ORDER BY site, name, season, episode'):
+    for row in cur2.execute('SELECT * FROM streams WHERE media_type="tvshow" ORDER BY site, name, season, episode'):
         if "Episoden" in row['episode']: ep = re.sub('Episoden ', '', row['episode'])
         else: ep = row['episode']
         if row['season'] == '' or row['season'] == 'NULL' or row['season'] == None: se = 0
@@ -256,6 +265,10 @@ def genLists():
 
     return True
 
+def vod_m3u8():
+    if getMovies():
+        return genLists()
+    return False
 
 def getHoster(data):
     site = getattr(sites, data['site'])
@@ -323,9 +336,9 @@ def search(search):
         if "mediatype" in select:
             if select["mediatype"] == 'movie' or select["mediatype"] == 'tvshow':
                 try:
-                    if "year" in select: 
+                    if "year" in select:
                         meta = cTMDB().get_meta(str(select["mediatype"]), str(select["name"]), year=str(select["year"]), advanced='false')
-                    else: 
+                    else:
                         meta = cTMDB().get_meta(str(select["mediatype"]), str(select["name"]), advanced='false')
                 except Exception:
                     meta = None
@@ -333,7 +346,6 @@ def search(search):
         e.append(select)
     if len(e) > 0:
         ee["entries"] = e
-        
         E.append(ee)
         db = updateDB(E)
         if db: return True

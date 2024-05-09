@@ -12,6 +12,7 @@ from helper.tools import cParser
 SITE_IDENTIFIER = 'kkiste'
 SITE_NAME = 'KKiste'
 SITE_ICON = 'kkiste.png'
+SITE_DOMAIN = 'kkiste.house'
 
 URL_MAIN = 'https://kkiste.house/'
 URL_NEW = URL_MAIN + 'kinofilme-online/'
@@ -23,10 +24,10 @@ URL_SEARCH = URL_MAIN + 'index.php?do=search&subaction=search&story=%s'
 
 def load():
     ret = []
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_NEW, "typ": 1, "key": "showEntries", "title": "New"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_KINO, "typ": 1, "key": "showEntries", "title": "Cinema"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_ANIMATION, "typ": 3, "key": "showEntries", "title": "Animated Films"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_SERIES, "typ": 2, "key": "showEntries", "title": "Series"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_NEW, "typ": 1, "key": "showEntries", "title": "New"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_KINO, "typ": 1, "key": "showEntries", "title": "Cinema"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_ANIMATION, "typ": 3, "key": "showEntries", "title": "Animated Films"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_SERIES, "typ": 2, "key": "showEntries", "title": "Series"})
     return ret
 
 
@@ -47,6 +48,7 @@ def showValue():
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showEntries'
         oGuiElement["thumb"] = sThumbnail
         oGuiElement["url"] = sUrl
@@ -87,6 +89,7 @@ def showEntries(entryUrl=False, sSearchText=False):
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showEpisodes' if isTvshow else 'showHosters'
         oGuiElement["thumb"] = sThumbnail
         oGuiElement["url"] = sUrl
@@ -116,6 +119,7 @@ def showEpisodes(entryUrl=False):
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showHosters'
         oGuiElement["url"] = entryUrl
         oGuiElement["p2"] = sName

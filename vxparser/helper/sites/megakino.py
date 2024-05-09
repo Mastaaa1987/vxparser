@@ -13,6 +13,7 @@ from helper.tools import cParser
 SITE_IDENTIFIER = 'megakino'
 SITE_NAME = 'Megakino'
 SITE_ICON = 'megakino.png'
+SITE_DOMAIN = 'megakino.co'
 
 URL_MAIN = 'https://megakino.co/'
 URL_KINO = URL_MAIN + 'kinofilme/'
@@ -25,11 +26,11 @@ URL_SEARCH = URL_MAIN + '?do=search&subaction=search&story=%s'
 
 def load():
     ret = []
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MAIN, "typ": 1, "key": "showEntries", "title": "New"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_KINO, "typ": 1, "key": "showEntries", "title": "Current films in the cinema"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MOVIES, "typ": 1, "key": "showEntries", "title": "Movies"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_SERIES, "typ": 2, "key": "showEntries", "title": "Series"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_DOKU, "typ": 3, "key": "showEntries", "title": "Documentations"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MAIN, "typ": 1, "key": "showEntries", "title": "New"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_KINO, "typ": 1, "key": "showEntries", "title": "Current films in the cinema"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MOVIES, "typ": 1, "key": "showEntries", "title": "Movies"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_SERIES, "typ": 2, "key": "showEntries", "title": "Series"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_DOKU, "typ": 3, "key": "showEntries", "title": "Documentations"})
     return ret
 
 
@@ -65,6 +66,7 @@ def showEntries(entryUrl=False, sSearchText=False):
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showEpisodes' if isTvshow else 'showHosters'
         oGuiElement["thumb"] = URL_MAIN + sThumbnail
         oGuiElement["url"] = sUrl
@@ -107,6 +109,7 @@ def showEpisodes(entryUrl=False, sName=False, sThumbnail=False, sDesc=False):
         oGuiElement = {}
         oGuiElement["name"] = str(episodeName)
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showEpisodeHosters'
         oGuiElement["thumb"] = URL_MAIN + sThumbnail
         oGuiElement["show"] = sShowName

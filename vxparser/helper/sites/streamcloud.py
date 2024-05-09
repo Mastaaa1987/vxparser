@@ -14,6 +14,7 @@ from helper.tools import cParser, cUtil
 SITE_IDENTIFIER = 'streamcloud'
 SITE_NAME = 'Streamcloud'
 SITE_ICON = 'streamcloud.png'
+SITE_DOMAIN = 'streamcloud.best'
 
 URL_MAIN = 'https://streamcloud.best/' # + DOMAIN + '/'
 URL_MAINPAGE = URL_MAIN + 'streamcloud/'
@@ -27,9 +28,9 @@ URL_SEARCH = URL_MAIN + 'index.php?story=%s&do=search&subaction=search'
 
 def load():
     ret = []
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_NEW, "typ": 1, "key": "showEntries", "title": "New Movies"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_KINO, "typ": 1, "key": "showEntries", "title": "Current films in the cinema"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_FAVOURITE_MOVIE_PAGE, "typ": 1, "key": "showEntries", "title": "Favorite Movies"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_NEW, "typ": 1, "key": "showEntries", "title": "New Movies"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_KINO, "typ": 1, "key": "showEntries", "title": "Current films in the cinema"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_FAVOURITE_MOVIE_PAGE, "typ": 1, "key": "showEntries", "title": "Favorite Movies"})
     return ret
 
 
@@ -54,6 +55,7 @@ def showEntries(entryUrl=False, sGui=False, sSearchText=False):
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showHosters'
         oGuiElement["thumb"] = URL_MAIN + sThumbnail
         oGuiElement["url"] = sUrl
@@ -84,6 +86,7 @@ def showSeries(entryUrl=False, sSearchText=False): # Neu eingebaut da auf der We
             sThumbnail = sThumbnail[1:]
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showEpisodes'
         oGuiElement["thumb"] = URL_MAIN + sThumbnail
         oGuiElement["url"] = sUrl
@@ -104,6 +107,7 @@ def showEpisodes(entryUrl=False, sThumbnail=False):
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showHosters'
         oGuiElement["thumb"] = sThumbnail
         oGuiElement["url"] = entryUrl

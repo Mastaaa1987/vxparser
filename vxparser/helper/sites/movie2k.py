@@ -17,6 +17,7 @@ from json import loads
 SITE_IDENTIFIER = 'movie2k'
 SITE_NAME = 'Movie2K'
 SITE_ICON = 'movie2k.png'
+SITE_DOMAIN = 'movie2k.ch'
 
 URL_MAIN = 'https://api.movie2k.ch/data/browse/?lang=%s&type=%s&order_by=%s&page=%s'  # lang=%s 2 = deutsch / 3 = englisch / all = Alles
 URL_SEARCH = 'https://api.movie2k.ch/data/browse/?lang=%s&keyword=%s&page=%s'
@@ -30,14 +31,14 @@ REFERER = ORIGIN + '/'
 def load():
     sLanguage = '2'
     ret = []
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MAIN % (sLanguage, 'movies', 'featured', '1'), "typ": 1, "key": "showEntries", "title": "movies featured"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MAIN % (sLanguage, 'movies', 'releases', '1'), "typ": 1, "key": "showEntries", "title": "movies releases"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MAIN % (sLanguage, 'movies', 'trending', '1'), "typ": 1, "key": "showEntries", "title": "movies trending"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MAIN % (sLanguage, 'movies', 'updates', '1'), "typ": 1, "key": "showEntries", "title": "movies updates"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MAIN % (sLanguage, 'movies', 'requested', '1'), "typ": 1, "key": "showEntries", "title": "movies requested"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MAIN % (sLanguage, 'movies', 'rating', '1'), "typ": 1, "key": "showEntries", "title": "movies rating"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MAIN % (sLanguage, 'movies', 'votes', '1'), "typ": 1, "key": "showEntries", "title": "movies votes"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MAIN % (sLanguage, 'movies', 'views', '1'), "typ": 1, "key": "showEntries", "title": "movies views"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MAIN % (sLanguage, 'movies', 'featured', '1'), "typ": 1, "key": "showEntries", "title": "movies featured"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MAIN % (sLanguage, 'movies', 'releases', '1'), "typ": 1, "key": "showEntries", "title": "movies releases"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MAIN % (sLanguage, 'movies', 'trending', '1'), "typ": 1, "key": "showEntries", "title": "movies trending"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MAIN % (sLanguage, 'movies', 'updates', '1'), "typ": 1, "key": "showEntries", "title": "movies updates"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MAIN % (sLanguage, 'movies', 'requested', '1'), "typ": 1, "key": "showEntries", "title": "movies requested"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MAIN % (sLanguage, 'movies', 'rating', '1'), "typ": 1, "key": "showEntries", "title": "movies rating"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MAIN % (sLanguage, 'movies', 'votes', '1'), "typ": 1, "key": "showEntries", "title": "movies votes"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MAIN % (sLanguage, 'movies', 'views', '1'), "typ": 1, "key": "showEntries", "title": "movies views"})
     return ret
 
 
@@ -90,6 +91,7 @@ def showEntries(entryUrl=False, sSearchText=False):
         oGuiElement = {}
         oGuiElement["name"] = sTitle
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showEpisodes' if isTvshow else 'showHosters'
         
         oGuiElement["mediatype"] = 'tvshow' if isTvshow else 'movie'
@@ -139,6 +141,7 @@ def showEpisodes(entryUrl=False, sThumbnail=False):
             oGuiElement = {}
             if 's' in aJson:  oGuiElement["s"] = aJson['s']
             oGuiElement["site"] = SITE_IDENTIFIER
+            oGuiElement["domain"] = SITE_DOMAIN
             oGuiElement["key"] = 'showHosters'
             oGuiElement["thumb"] = sThumbnail
             oGuiElement["name"] = 'Episode ' + str(sEpisode)

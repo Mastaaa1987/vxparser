@@ -9,6 +9,7 @@ from helper.tools import cParser
 SITE_IDENTIFIER = 'dokus4'
 SITE_NAME = 'Dokus4'
 SITE_ICON = 'dokus4.png'
+SITE_DOMAIN = 'dokus4.me'
 
 # Domain Abfrage
 URL_MAIN = 'http://www.dokus4.me/'
@@ -17,7 +18,7 @@ URL_SEARCH = URL_MAIN + '?s=%s'
 
 def load():
     ret = []
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MAIN, "typ": 3, "key": "showEntries", "title": "Documentations"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MAIN, "typ": 3, "key": "showEntries", "title": "Documentations"})
     return ret
 
 
@@ -37,6 +38,7 @@ def showEntries(entryUrl=False, sSearchText=False):
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showHosters'
         oGuiElement["thumb"] = sThumbnail
         oGuiElement["url"] = sUrl

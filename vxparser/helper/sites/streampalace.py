@@ -15,6 +15,7 @@ from helper.tools import cParser
 SITE_IDENTIFIER = 'streampalace'
 SITE_NAME = 'StreamPalace'
 SITE_ICON = 'streampalace.png'
+SITE_DOMAIN = 'streampalace.org'
 
 URL_MAIN = 'https://streampalace.org/'
 URL_MOVIES = URL_MAIN + 'filme/'
@@ -24,8 +25,8 @@ URL_SEARCH = URL_MAIN + '?s=%s'
 
 def load():
     ret = []
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_MOVIES, "typ": 1, "key": "showEntries", "title": "Movies"})
-    ret.append({"site": SITE_IDENTIFIER, "url": URL_SERIES, "typ": 2, "key": "showEntries", "title": "Series"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_MOVIES, "typ": 1, "key": "showEntries", "title": "Movies"})
+    ret.append({"site": SITE_IDENTIFIER, "domain": SITE_DOMAIN, "url": URL_SERIES, "typ": 2, "key": "showEntries", "title": "Series"})
     return ret
 
 
@@ -76,6 +77,7 @@ def showEntries(entryUrl=False, sSearchText=False):
         oGuiElement = {}
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showSeasons' if isTvshow else 'showHosters'
         oGuiElement["mediatype"] = 'tvshow' if isTvshow else 'movie'
         oGuiElement["thumb"] = sThumbnail
@@ -106,6 +108,7 @@ def showSeasons(entryUrl=False):
         oGuiElement = {}
         oGuiElement["name"] = 'Staffel ' + sSeason
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showEpisodes'
         oGuiElement["s"] = sSeason
         oGuiElement["url"] = entryUrl
@@ -144,6 +147,7 @@ def showEpisodes(entryUrl=False, sSeason=False):
         oGuiElement["e"] = sEpisode
         oGuiElement["name"] = sName
         oGuiElement["site"] = SITE_IDENTIFIER
+        oGuiElement["domain"] = SITE_DOMAIN
         oGuiElement["key"] = 'showHosters'
         oGuiElement["thumb"] = sThumbnail
         oGuiElement["s"] = sSeason

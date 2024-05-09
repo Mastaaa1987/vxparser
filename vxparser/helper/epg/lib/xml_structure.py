@@ -8,7 +8,7 @@ import utils.common as com
 datapath = com.cp
 listpath = com.lp
 temppath = os.path.join(com.cp, "temp")
-con = com.con
+con = com.con3
 
 unicode = str
 
